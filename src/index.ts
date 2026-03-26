@@ -6,13 +6,13 @@
  */
 
 export { Container } from './container.ts';
+export { Lifetime } from './constants.ts';
 export { ContainerError } from './error.ts';
 export { TypedToken } from './token.ts';
 export type {
     ContainerKey,
     FactoryProvider,
     IContainer,
-    Lifetime,
     Provider,
     RegistrationOptions,
     Result,
