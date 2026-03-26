@@ -40,8 +40,8 @@ jobs:
               if: ${{ steps.release.outputs.releases_created }}
               uses: ./.github/actions/build
 
-            #- name: Publish
-            #  if: ${{ steps.release.outputs.releases_created }}
-            #  env:
-            #      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-            #  run: npm publish --access public
+            - name: Publish
+              if: ${{ steps.release.outputs.releases_created }}
+              uses: tada5hi/monoship@v2
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}
