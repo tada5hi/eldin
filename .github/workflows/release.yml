@@ -10,6 +10,7 @@ concurrency:
 permissions:
     contents: write
     pull-requests: write
+    id-token: write
 
 env:
     PRIMARY_NODE_VERSION: 22
