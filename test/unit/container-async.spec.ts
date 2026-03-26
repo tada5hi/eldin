@@ -97,6 +97,22 @@ describe('src/container.ts (async)', () => {
 
             expect(first).toBe(second);
         });
+
+        it('should call factory only once when resolved concurrently', async () => {
+            const container = new Container();
+            const token = new TypedToken<object>('obj');
+            const factory = vi.fn(async () => ({}));
+
+            container.register(token, { useAsyncFactory: factory });
+
+            const [a, b] = await Promise.all([
+                container.resolveAsync(token),
+                container.resolveAsync(token),
+            ]);
+
+            expect(factory).toHaveBeenCalledTimes(1);
+            expect(a).toBe(b);
+        });
     });
 
     // ---- transient lifetime with async factory ----

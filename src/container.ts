@@ -19,6 +19,8 @@ export class Container implements IContainer {
 
     protected instances: Map<MapKey, any>;
 
+    protected asyncResolving: Map<MapKey, Promise<any>>;
+
     protected lifetimes: Map<MapKey, `${Lifetime}`>;
 
     protected parent?: Container;
@@ -30,6 +32,7 @@ export class Container implements IContainer {
     constructor() {
         this.providers = new Map();
         this.instances = new Map();
+        this.asyncResolving = new Map();
         this.lifetimes = new Map();
         this.isScope = false;
     }
@@ -41,12 +44,14 @@ export class Container implements IContainer {
         this.providers.set(k, provider);
         this.lifetimes.set(k, options.lifetime ?? Lifetime.SINGLETON);
         this.instances.delete(k);
+        this.asyncResolving.delete(k);
     }
 
     unregister(key: ContainerKey): void {
         const k = this.normalizeKey(key);
         this.providers.delete(k);
         this.instances.delete(k);
+        this.asyncResolving.delete(k);
         this.lifetimes.delete(k);
     }
 
@@ -56,13 +61,13 @@ export class Container implements IContainer {
         return this.resolveInternal(key, this);
     }
 
-    tryResolve<T>(key: ContainerKey<T>): Result<T, ContainerError> {
+    tryResolve<T>(key: ContainerKey<T>): Result<T> {
         try {
             const data = this.resolve<T>(key);
 
             return { success: true, data };
         } catch (e) {
-            return { success: false, error: e as ContainerError };
+            return { success: false, error: e as Error };
         }
     }
 
@@ -72,13 +77,13 @@ export class Container implements IContainer {
         return this.resolveAsyncInternal(key, this);
     }
 
-    async tryResolveAsync<T>(key: ContainerKey<T>): Promise<Result<T, ContainerError>> {
+    async tryResolveAsync<T>(key: ContainerKey<T>): Promise<Result<T>> {
         try {
             const data = await this.resolveAsync<T>(key);
 
             return { success: true, data };
         } catch (e) {
-            return { success: false, error: e as ContainerError };
+            return { success: false, error: e as Error };
         }
     }
 
@@ -177,22 +182,27 @@ export class Container implements IContainer {
                 throw new ContainerError(`Cannot resolve scoped registration outside a scope: ${String(key)}`);
             }
 
-            let instance: T;
-            if (this.isValueProvider(provider)) {
-                instance = provider.useValue as T;
-            } else if (this.isAsyncFactoryProvider(provider)) {
-                instance = await provider.useAsyncFactory(origin);
-            } else {
-                instance = provider.useFactory(origin) as T;
+            const cacheTarget = lifetime === Lifetime.SCOPED ? origin : this;
+            if (cacheTarget.asyncResolving.has(k)) {
+                return cacheTarget.asyncResolving.get(k) as Promise<T>;
             }
 
-            if (lifetime === Lifetime.SINGLETON) {
-                this.instances.set(k, instance);
-            } else if (lifetime === Lifetime.SCOPED) {
-                origin.instances.set(k, instance);
+            const pending = this.createInstance<T>(provider, origin);
+
+            if (lifetime === Lifetime.SINGLETON || lifetime === Lifetime.SCOPED) {
+                cacheTarget.asyncResolving.set(k, pending);
+
+                try {
+                    const instance = await pending;
+                    cacheTarget.instances.set(k, instance);
+
+                    return instance;
+                } finally {
+                    cacheTarget.asyncResolving.delete(k);
+                }
             }
 
-            return instance;
+            return pending;
         }
 
         if (this.parent) {
@@ -200,6 +210,18 @@ export class Container implements IContainer {
         }
 
         throw new ContainerError(`No registration found for: ${String(key)}`);
+    }
+
+    private async createInstance<T>(provider: Provider<T>, origin: Container): Promise<T> {
+        if (this.isValueProvider(provider)) {
+            return provider.useValue as T;
+        }
+
+        if (this.isAsyncFactoryProvider(provider)) {
+            return provider.useAsyncFactory(origin);
+        }
+
+        return provider.useFactory(origin) as T;
     }
 
     private isValueProvider<T>(provider: Provider<T>): provider is ValueProvider<T> {
