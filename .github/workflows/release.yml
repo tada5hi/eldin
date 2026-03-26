@@ -26,22 +26,22 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Checkout
-              if: ${{ steps.release.outputs.releases_created }}
+              if: steps.release.outputs.releases_created == 'true'
               uses: actions/checkout@v6
 
             - name: Install
-              if: ${{ steps.release.outputs.releases_created }}
+              if: steps.release.outputs.releases_created == 'true'
               uses: ./.github/actions/install
               with:
                   node-version: ${{ env.PRIMARY_NODE_VERSION }}
                   registry-url: 'https://registry.npmjs.org'
 
             - name: Build
-              if: ${{ steps.release.outputs.releases_created }}
+              if: steps.release.outputs.releases_created == 'true'
               uses: ./.github/actions/build
 
             - name: Publish
-              if: ${{ steps.release.outputs.releases_created }}
+              if: steps.release.outputs.releases_created == 'true'
               uses: tada5hi/monoship@v2
               with:
                   token: ${{ secrets.NPM_TOKEN }}
