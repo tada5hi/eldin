@@ -1,4 +1,4 @@
-# eldi 💉
+# eldin 💉
 
 [![npm version][npm-version-src]][npm-version-href]
 [![codecov][codecov-src]][codecov-href]
@@ -27,13 +27,13 @@ No decorators. No metadata reflection. No magic. Just typed tokens, factory/valu
 ## Installation
 
 ```bash
-npm install eldi --save
+npm install eldin --save
 ```
 
 ## Quick Start
 
 ```typescript
-import { Container, TypedToken } from 'eldi';
+import { Container, TypedToken } from 'eldin';
 
 // 1. Define typed tokens
 const DatabaseToken = new TypedToken<Database>('Database');
@@ -60,7 +60,7 @@ const userService = container.resolve(UserServiceToken);
 `TypedToken<T>` carries a phantom type parameter that flows through `register()` and `resolve()`, giving you compile-time type safety without manual generic annotations.
 
 ```typescript
-import { TypedToken } from 'eldi';
+import { TypedToken } from 'eldin';
 
 // Each token encodes the type it resolves to
 const ConfigToken = new TypedToken<Config>('Config');
@@ -141,8 +141,8 @@ Value providers are always singleton by nature (the value already exists).
 The `Container` class implements the `IContainer` interface. Program against the interface to decouple your application from the concrete implementation — useful for dependency inversion and testing seams.
 
 ```typescript
-import { Container } from 'eldi';
-import type { IContainer } from 'eldi';
+import { Container } from 'eldin';
+import type { IContainer } from 'eldin';
 
 const container: IContainer = new Container();
 ```
@@ -184,7 +184,7 @@ container.resolve(ConfigToken); // prodConfig (cache cleared)
 When `resolve()` is called with an unregistered key, it throws a `ContainerError`:
 
 ```typescript
-import { ContainerError } from 'eldi';
+import { ContainerError } from 'eldin';
 
 try {
     container.resolve(UnknownToken);
@@ -206,7 +206,7 @@ if (!result.success) {
 
 ## Usage in Tests
 
-eldi makes testing easy — just construct dependencies manually:
+eldin makes testing easy — just construct dependencies manually:
 
 ```typescript
 const mockDb = { query: vi.fn() };
@@ -237,13 +237,13 @@ Made with 💚
 
 Published under [MIT License](./LICENSE).
 
-[npm-version-src]: https://badge.fury.io/js/eldi.svg
-[npm-version-href]: https://npmjs.com/package/eldi
-[codecov-src]: https://codecov.io/gh/tada5hi/eldi/branch/master/graph/badge.svg?token=4KNSG8L13V
-[codecov-href]: https://codecov.io/gh/tada5hi/eldi
-[workflow-src]: https://github.com/tada5hi/eldi/workflows/CI/badge.svg
-[workflow-href]: https://github.com/tada5hi/eldi
-[snyk-src]: https://snyk.io/test/github/tada5hi/eldi/badge.svg?targetFile=package.json
-[snyk-href]: https://snyk.io/test/github/tada5hi/eldi?targetFile=package.json
+[npm-version-src]: https://badge.fury.io/js/eldin.svg
+[npm-version-href]: https://npmjs.com/package/eldin
+[codecov-src]: https://codecov.io/gh/tada5hi/eldin/branch/master/graph/badge.svg?token=4KNSG8L13V
+[codecov-href]: https://codecov.io/gh/tada5hi/eldin
+[workflow-src]: https://github.com/tada5hi/eldin/workflows/CI/badge.svg
+[workflow-href]: https://github.com/tada5hi/eldin
+[snyk-src]: https://snyk.io/test/github/tada5hi/eldin/badge.svg?targetFile=package.json
+[snyk-href]: https://snyk.io/test/github/tada5hi/eldin?targetFile=package.json
 [conventional-src]: https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white
 [conventional-href]: https://conventionalcommits.org
