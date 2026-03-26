@@ -1,5 +1,5 @@
 {
-    "name": "eldi",
+    "name": "eldin",
     "version": "1.0.0",
     "type": "module",
     "description": "A lightweight, type-safe dependency injection container for TypeScript with typed tokens, lifetime management, and modular application orchestration.",
@@ -10,7 +10,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/tada5hi/eldi.git"
+        "url": "https://github.com/tada5hi/eldin.git"
     },
     "main": "dist/index.mjs",
     "types": "dist/index.d.mts",
@@ -56,5 +56,8 @@
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.57.2",
         "vitest": "^4.1.2"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }
