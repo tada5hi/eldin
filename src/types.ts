@@ -5,6 +5,7 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
+import type { Lifetime } from './constants.ts';
 import type { TypedToken } from './token.ts';
 
 type ClassConstructor<T = any> = {
@@ -13,10 +14,8 @@ type ClassConstructor<T = any> = {
 
 export type ContainerKey<T = any> = TypedToken<T> | ClassConstructor<T> | symbol | string;
 
-export type Lifetime = 'singleton' | 'transient';
-
 export interface RegistrationOptions {
-    lifetime?: Lifetime;
+    lifetime?: `${Lifetime}`;
 }
 
 export interface ValueProvider<T> {
@@ -44,5 +43,8 @@ export interface IContainer {
     has(key: ContainerKey): boolean;
 
     unregister(key: ContainerKey): void;
+
+    createChild(): IContainer;
+    createScope(): IContainer;
 }
 
