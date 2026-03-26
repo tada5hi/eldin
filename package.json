@@ -1,6 +1,6 @@
 {
     "name": "eldi",
-    "version": "0.0.0",
+    "version": "1.0.0",
     "type": "module",
     "description": "A lightweight, type-safe dependency injection container for TypeScript with typed tokens, lifetime management, and modular application orchestration.",
     "author": {
