@@ -1,0 +1,12 @@
+.DS_Store
+dist
+node_modules
+.vscode
+.idea
+coverage
+*.log
+npm-debug.log*
+.env
+cache
+.claude/settings.local.json
+.agents/plans

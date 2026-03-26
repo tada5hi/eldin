@@ -1,0 +1,13 @@
+{
+    "extends": "@tada5hi/tsconfig",
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "noEmit": true,
+        "allowImportingTsExtensions": true
+    },
+    "include": [
+        "src/**/*"
+    ]
+}

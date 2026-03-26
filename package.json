@@ -1,0 +1,51 @@
+{
+    "name": "eldi",
+    "version": "0.0.0",
+    "type": "module",
+    "description": "A lightweight, type-safe dependency injection container for TypeScript with typed tokens, lifetime management, and modular application orchestration.",
+    "author": {
+        "name": "Peter Placzek",
+        "email": "contact@tada5hi.net",
+        "url": "https://github.com/tada5hi"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tada5hi/eldi.git"
+    },
+    "main": "dist/index.mjs",
+    "types": "dist/index.d.mts",
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "types": "./dist/index.d.mts",
+            "import": "./dist/index.mjs"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "engines": {
+        "node": ">=22.0.0"
+    },
+    "scripts": {
+        "build": "tsdown",
+        "test": "vitest --config test/vitest.config.ts --run",
+        "test:coverage": "vitest --config test/vitest.config.ts --run --coverage",
+        "lint": "eslint",
+        "lint:fix": "npm run lint -- --fix",
+        "prepare": "husky"
+    },
+    "keywords": ["dependency-injection", "di", "ioc", "container", "typescript", "typed-tokens", "inversion-of-control"],
+    "license": "MIT",
+    "devDependencies": {
+        "@tada5hi/commitlint-config": "^1.3.1",
+        "@tada5hi/eslint-config": "^2.0.2",
+        "@tada5hi/tsconfig": "^0.7.2",
+        "eslint": "^10.1.0",
+        "husky": "^9.1.7",
+        "tsdown": "^0.21.5",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.57.2",
+        "vitest": "^4.1.1"
+    }
+}

@@ -1,0 +1,47 @@
+name: Release
+
+on:
+    push:
+        branches: [master]
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+    contents: write
+    pull-requests: write
+
+env:
+    PRIMARY_NODE_VERSION: 22
+
+jobs:
+    release:
+        name: Release
+        runs-on: ubuntu-latest
+        steps:
+            - name: Release Please
+              id: release
+              uses: googleapis/release-please-action@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Checkout
+              if: ${{ steps.release.outputs.releases_created }}
+              uses: actions/checkout@v4
+
+            - name: Install
+              if: ${{ steps.release.outputs.releases_created }}
+              uses: ./.github/actions/install
+              with:
+                  node-version: ${{ env.PRIMARY_NODE_VERSION }}
+                  registry-url: 'https://registry.npmjs.org'
+
+            - name: Build
+              if: ${{ steps.release.outputs.releases_created }}
+              uses: ./.github/actions/build
+
+            #- name: Publish
+            #  if: ${{ steps.release.outputs.releases_created }}
+            #  env:
+            #      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+            #  run: npm publish --access public
