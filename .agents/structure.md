@@ -9,9 +9,16 @@ src/
   token.ts          # TypedToken class -- type-safe registration keys
   types.ts          # Type definitions -- interfaces, type aliases, providers
   error.ts          # ContainerError -- custom error class
+  constants.ts      # Lifetime enum (singleton, transient, scoped)
 test/
   unit/
-    index.spec.ts   # Unit tests for container functionality
+    container.spec.ts       # Unit tests for sync container functionality
+    container-async.spec.ts # Unit tests for async resolution
+    container-child.spec.ts # Unit tests for child containers
+    container-scope.spec.ts # Unit tests for scoped containers
+    token.spec.ts           # Unit tests for TypedToken
+    error.spec.ts           # Unit tests for ContainerError
+    index.spec.ts           # Unit tests for public API exports
   vitest.config.ts  # Vitest configuration with coverage thresholds
 dist/               # Build output (ESM + declarations + sourcemaps)
 ```
@@ -20,11 +27,12 @@ dist/               # Build output (ESM + declarations + sourcemaps)
 
 | Module         | Purpose                                                        |
 |----------------|----------------------------------------------------------------|
-| `container.ts` | `Container` class implementing `IContainer` -- register, resolve, unregister, lifetime management |
-| `token.ts`     | `TypedToken<T>` -- symbol-backed typed key for type-safe DI lookups |
-| `types.ts`     | All type definitions: `ContainerKey`, `Provider`, `Lifetime`, `Result`, `IContainer` interface |
-| `error.ts`     | `ContainerError` extending `Error` for resolution failures     |
-| `index.ts`     | Barrel export -- the only entry point consumers should import from |
+| `container.ts`  | `Container` class implementing `IContainer` -- register, resolve, resolveAsync, unregister, lifetime management, child/scoped containers |
+| `token.ts`      | `TypedToken<T>` -- symbol-backed typed key for type-safe DI lookups |
+| `types.ts`      | All type definitions: `ContainerKey`, `Provider` (value, factory, async factory), `Result`, `IContainer` interface |
+| `constants.ts`  | `Lifetime` enum (SINGLETON, TRANSIENT, SCOPED)                 |
+| `error.ts`      | `ContainerError` extending `Error` for resolution failures     |
+| `index.ts`      | Barrel export (`export *`) -- the only entry point consumers should import from |
 
 ## Key Dependencies
 

@@ -14,11 +14,23 @@ No decorators. No metadata reflection. No magic. Just typed tokens, factory/valu
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
-- [Typed Tokens](#typed-tokens)
-- [Untyped Keys](#untyped-keys)
+- [Key Concepts](#key-concepts)
+  - [Typed Tokens](#typed-tokens)
+  - [Untyped Keys](#untyped-keys)
 - [Providers](#providers)
+  - [Value Provider](#value-provider)
+  - [Factory Provider](#factory-provider)
+  - [Async Factory Provider](#async-factory-provider)
 - [Lifetime Management](#lifetime-management)
-- [Container API](#container-api)
+- [Container Hierarchy](#container-hierarchy)
+  - [Child Containers](#child-containers)
+  - [Scoped Containers](#scoped-containers)
+- [API Reference](#api-reference)
+  - [Sync Methods](#sync-methods)
+  - [Async Methods](#async-methods)
+  - [Container Methods](#container-methods)
+  - [Safe Resolution](#safe-resolution)
+  - [Re-registration](#re-registration)
 - [Error Handling](#error-handling)
 - [Usage in Tests](#usage-in-tests)
 - [Contributing](#contributing)
@@ -55,7 +67,9 @@ const userService = container.resolve(UserServiceToken);
 //    ^ type is UserService, inferred from the token
 ```
 
-## Typed Tokens
+## Key Concepts
+
+### Typed Tokens
 
 `TypedToken<T>` carries a phantom type parameter that flows through `register()` and `resolve()`, giving you compile-time type safety without manual generic annotations.
 
@@ -79,7 +93,7 @@ const tokenB = new TypedToken<Bar>('Service');
 // tokenA and tokenB are distinct registrations
 ```
 
-## Untyped Keys
+### Untyped Keys
 
 You can also use plain `symbol`, `string`, or class constructor keys. These require a manual generic on `resolve()`:
 
@@ -91,8 +105,6 @@ const value = container.resolve<number>(MY_KEY);
 ```
 
 ## Providers
-
-Two provider types keep the API unambiguous:
 
 ### Value Provider
 
@@ -118,9 +130,48 @@ container.register(UserServiceToken, {
 });
 ```
 
+### Async Factory Provider
+
+Registers an async factory for dependencies that require asynchronous initialization, such as database connections, remote config, or authenticated HTTP clients.
+
+```typescript
+const DatabaseToken = new TypedToken<Database>('Database');
+
+container.register(DatabaseToken, {
+    useAsyncFactory: async (container) => {
+        const config = container.resolve(ConfigToken);
+        const db = new Database(config.connectionString);
+        await db.connect();
+        return db;
+    },
+});
+
+// Must use resolveAsync() — resolve() will throw
+const db = await container.resolveAsync(DatabaseToken);
+```
+
+Async factories integrate with all lifetime modes. Singleton async factories are called once, and concurrent calls safely share the same in-flight promise:
+
+```typescript
+// Both calls await the same factory invocation
+const [db1, db2] = await Promise.all([
+    container.resolveAsync(DatabaseToken),
+    container.resolveAsync(DatabaseToken),
+]);
+// db1 === db2
+```
+
+`resolveAsync()` also works with value providers and sync factory providers, making it safe to use as a universal resolution method when your dependency graph contains a mix of sync and async providers.
+
 ## Lifetime Management
 
-Control how often a factory is called:
+Control how often a factory is called via the `lifetime` option:
+
+| Lifetime      | Behavior                                                   |
+|---------------|------------------------------------------------------------|
+| `'singleton'` | Created once, cached on first resolve (default)            |
+| `'transient'` | New instance on every `resolve()` / `resolveAsync()` call  |
+| `'scoped'`    | Created once per scope, cached within that scope           |
 
 ```typescript
 // Singleton (default) — created once, cached forever
@@ -132,13 +183,52 @@ container.register(DatabaseToken, {
 container.register(RequestIdToken, {
     useFactory: () => crypto.randomUUID(),
 }, { lifetime: 'transient' });
+
+// Scoped — one instance per scope
+container.register(SessionToken, {
+    useFactory: () => new Session(),
+}, { lifetime: 'scoped' });
 ```
 
 Value providers are always singleton by nature (the value already exists).
 
-## Container API
+## Container Hierarchy
 
-The `Container` class implements the `IContainer` interface. Program against the interface to decouple your application from the concrete implementation — useful for dependency inversion and testing seams.
+### Child Containers
+
+Child containers inherit registrations from their parent but can override them locally. Resolution walks up the parent chain until a provider is found.
+
+```typescript
+const parent = new Container();
+parent.register(LoggerToken, { useValue: console });
+
+const child = parent.createChild();
+child.register(LoggerToken, { useValue: customLogger });
+
+child.resolve(LoggerToken);  // customLogger
+parent.resolve(LoggerToken); // console
+```
+
+### Scoped Containers
+
+Scoped containers are child containers that enable `'scoped'` lifetime registrations. Each scope maintains its own instance cache for scoped dependencies.
+
+```typescript
+container.register(SessionToken, {
+    useFactory: () => new Session(),
+}, { lifetime: 'scoped' });
+
+const scope = container.createScope();
+const s1 = scope.resolve(SessionToken);
+const s2 = scope.resolve(SessionToken);
+// s1 === s2 (same instance within the scope)
+```
+
+Resolving a scoped registration outside of a scope throws a `ContainerError`.
+
+## API Reference
+
+The `Container` class implements the `IContainer` interface. Program against the interface to decouple your application from the concrete implementation.
 
 ```typescript
 import { Container } from 'eldin';
@@ -147,15 +237,33 @@ import type { IContainer } from 'eldin';
 const container: IContainer = new Container();
 ```
 
-| Method                              | Description                                                          |
-|-------------------------------------|----------------------------------------------------------------------|
-| `register(key, provider, options?)` | Register a dependency with optional lifetime. Re-registering an existing key replaces the provider and clears any cached singleton. |
-| `resolve(key)`                      | Resolve a dependency. Throws `ContainerError` if not found.          |
-| `tryResolve(key)`                   | Safe resolve returning `Result<T>` (no throw).                       |
-| `has(key)`                          | Check if a key is registered.                                        |
-| `unregister(key)`                   | Remove a registration and its cached instance.                       |
+### Sync Methods
+
+| Method                              | Description                                                                  |
+|-------------------------------------|------------------------------------------------------------------------------|
+| `register(key, provider, options?)` | Register a dependency. Re-registering replaces the provider and clears cache.|
+| `resolve(key)`                      | Resolve a dependency. Throws `ContainerError` if not found or if async.      |
+| `tryResolve(key)`                   | Safe resolve returning `Result<T>` (no throw).                               |
+
+### Async Methods
+
+| Method                   | Description                                                                     |
+|--------------------------|---------------------------------------------------------------------------------|
+| `resolveAsync(key)`      | Resolve any provider type asynchronously. Throws `ContainerError` if not found. |
+| `tryResolveAsync(key)`   | Safe async resolve returning `Promise<Result<T>>` (no throw).                   |
+
+### Container Methods
+
+| Method           | Description                                              |
+|------------------|----------------------------------------------------------|
+| `has(key)`       | Check if a key is registered (includes parent chain).    |
+| `unregister(key)`| Remove a registration and its cached instance.           |
+| `createChild()`  | Create a child container inheriting parent registrations.|
+| `createScope()`  | Create a scoped child container for scoped lifetimes.    |
 
 ### Safe Resolution
+
+Both `tryResolve()` and `tryResolveAsync()` return a discriminated union instead of throwing:
 
 ```typescript
 const result = container.tryResolve(DatabaseToken);
@@ -164,6 +272,13 @@ if (result.success) {
     console.log(result.data); // Database
 } else {
     console.error(result.error); // Error
+}
+
+// Async variant
+const asyncResult = await container.tryResolveAsync(RemoteConfigToken);
+
+if (asyncResult.success) {
+    console.log(asyncResult.data);
 }
 ```
 
@@ -195,7 +310,17 @@ try {
 }
 ```
 
-To avoid exceptions, use `tryResolve()` which returns a discriminated union instead:
+`resolve()` also throws if the provider is async — use `resolveAsync()` instead:
+
+```typescript
+// This throws: "Cannot resolve async provider synchronously ... Use resolveAsync()"
+container.resolve(AsyncToken);
+
+// This works
+const value = await container.resolveAsync(AsyncToken);
+```
+
+To avoid exceptions entirely, use `tryResolve()` or `tryResolveAsync()`:
 
 ```typescript
 const result = container.tryResolve(MaybeToken);
