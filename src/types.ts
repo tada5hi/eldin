@@ -26,7 +26,11 @@ export interface FactoryProvider<T> {
     useFactory: (container: IContainer) => T;
 }
 
-export type Provider<T> = ValueProvider<T> | FactoryProvider<T>;
+export interface AsyncFactoryProvider<T> {
+    useAsyncFactory: (container: IContainer) => Promise<T>;
+}
+
+export type Provider<T> = ValueProvider<T> | FactoryProvider<T> | AsyncFactoryProvider<T>;
 
 export type Result<T> = { success: true; data: T } | { success: false; error: Error };
 
@@ -39,6 +43,12 @@ export interface IContainer {
 
     tryResolve<T>(key: TypedToken<T>): Result<T>;
     tryResolve<T>(key: ClassConstructor | symbol | string): Result<T>;
+
+    resolveAsync<T>(key: TypedToken<T>): Promise<T>;
+    resolveAsync<T>(key: ClassConstructor | symbol | string): Promise<T>;
+
+    tryResolveAsync<T>(key: TypedToken<T>): Promise<Result<T>>;
+    tryResolveAsync<T>(key: ClassConstructor | symbol | string): Promise<Result<T>>;
 
     has(key: ContainerKey): boolean;
 

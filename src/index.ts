@@ -5,16 +5,8 @@
  * view the LICENSE file that was distributed with this source code.
  */
 
-export { Container } from './container.ts';
-export { Lifetime } from './constants.ts';
-export { ContainerError } from './error.ts';
-export { TypedToken } from './token.ts';
-export type {
-    ContainerKey,
-    FactoryProvider,
-    IContainer,
-    Provider,
-    RegistrationOptions,
-    Result,
-    ValueProvider,
-} from './types.ts';
+export * from './container.ts';
+export * from './constants.ts';
+export * from './error.ts';
+export * from './token.ts';
+export * from './types.ts';

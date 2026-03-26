@@ -9,14 +9,10 @@ import { Lifetime } from './constants.ts';
 import { ContainerError } from './error.ts';
 import { TypedToken } from './token.ts';
 import type {
-    ContainerKey, IContainer, Provider, RegistrationOptions, Result,
+    AsyncFactoryProvider, ContainerKey, IContainer, Provider, RegistrationOptions, Result, ValueProvider,
 } from './types.ts';
 
 type MapKey = symbol | string | (abstract new (...args: any[]) => any);
-
-function isValueProvider<T>(provider: Provider<T>): provider is { useValue: T } {
-    return 'useValue' in provider;
-}
 
 export class Container implements IContainer {
     protected providers: Map<MapKey, Provider<any>>;
@@ -47,6 +43,15 @@ export class Container implements IContainer {
         this.instances.delete(k);
     }
 
+    unregister(key: ContainerKey): void {
+        const k = this.normalizeKey(key);
+        this.providers.delete(k);
+        this.instances.delete(k);
+        this.lifetimes.delete(k);
+    }
+
+    // ----------------------------------------------------
+
     resolve<T>(key: ContainerKey<T>): T {
         return this.resolveInternal(key, this);
     }
@@ -60,6 +65,24 @@ export class Container implements IContainer {
             return { success: false, error: e as Error };
         }
     }
+
+    // ----------------------------------------------------
+
+    async resolveAsync<T>(key: ContainerKey<T>): Promise<T> {
+        return this.resolveAsyncInternal(key, this);
+    }
+
+    async tryResolveAsync<T>(key: ContainerKey<T>): Promise<Result<T>> {
+        try {
+            const data = await this.resolveAsync<T>(key);
+
+            return { success: true, data };
+        } catch (e) {
+            return { success: false, error: e as Error };
+        }
+    }
+
+    // ----------------------------------------------------
 
     has(key: ContainerKey): boolean {
         const k = this.normalizeKey(key);
@@ -75,12 +98,7 @@ export class Container implements IContainer {
         return false;
     }
 
-    unregister(key: ContainerKey): void {
-        const k = this.normalizeKey(key);
-        this.providers.delete(k);
-        this.instances.delete(k);
-        this.lifetimes.delete(k);
-    }
+    // ----------------------------------------------------
 
     createChild(): Container {
         const child = new Container();
@@ -120,7 +138,11 @@ export class Container implements IContainer {
                 throw new ContainerError(`Cannot resolve scoped registration outside a scope: ${String(key)}`);
             }
 
-            const instance = isValueProvider(provider) ?
+            if (this.isAsyncFactoryProvider(provider)) {
+                throw new ContainerError(`Cannot resolve async provider synchronously: ${String(key)}. Use resolveAsync() instead.`);
+            }
+
+            const instance = this.isValueProvider(provider) ?
                 provider.useValue as T :
                 provider.useFactory(origin) as T;
 
@@ -138,6 +160,54 @@ export class Container implements IContainer {
         }
 
         throw new ContainerError(`No registration found for: ${String(key)}`);
+    }
+
+    protected async resolveAsyncInternal<T>(key: ContainerKey<T>, origin: Container): Promise<T> {
+        const k = this.normalizeKey(key);
+
+        if (this.instances.has(k)) {
+            return this.instances.get(k) as T;
+        }
+
+        if (this.providers.has(k)) {
+            const provider = this.providers.get(k)!;
+            const lifetime = this.lifetimes.get(k)!;
+
+            if (lifetime === Lifetime.SCOPED && !origin.isScope) {
+                throw new ContainerError(`Cannot resolve scoped registration outside a scope: ${String(key)}`);
+            }
+
+            let instance: T;
+            if (this.isValueProvider(provider)) {
+                instance = provider.useValue as T;
+            } else if (this.isAsyncFactoryProvider(provider)) {
+                instance = await provider.useAsyncFactory(origin);
+            } else {
+                instance = provider.useFactory(origin) as T;
+            }
+
+            if (lifetime === Lifetime.SINGLETON) {
+                this.instances.set(k, instance);
+            } else if (lifetime === Lifetime.SCOPED) {
+                origin.instances.set(k, instance);
+            }
+
+            return instance;
+        }
+
+        if (this.parent) {
+            return this.parent.resolveAsyncInternal(key, origin);
+        }
+
+        throw new ContainerError(`No registration found for: ${String(key)}`);
+    }
+
+    private isValueProvider<T>(provider: Provider<T>): provider is ValueProvider<T> {
+        return 'useValue' in provider;
+    }
+
+    private isAsyncFactoryProvider<T>(provider: Provider<T>): provider is AsyncFactoryProvider<T> {
+        return 'useAsyncFactory' in provider;
     }
 
     protected normalizeKey(key: ContainerKey): MapKey {
