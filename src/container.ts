@@ -56,7 +56,7 @@ export class Container implements IContainer {
         return this.resolveInternal(key, this);
     }
 
-    tryResolve<T>(key: ContainerKey<T>): Result<T> {
+    tryResolve<T>(key: ContainerKey<T>): Result<T, ContainerError> {
         try {
             const data = this.resolve<T>(key);
 
@@ -72,7 +72,7 @@ export class Container implements IContainer {
         return this.resolveAsyncInternal(key, this);
     }
 
-    async tryResolveAsync<T>(key: ContainerKey<T>): Promise<Result<T>> {
+    async tryResolveAsync<T>(key: ContainerKey<T>): Promise<Result<T, ContainerError>> {
         try {
             const data = await this.resolveAsync<T>(key);
 

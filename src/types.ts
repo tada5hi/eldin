@@ -32,7 +32,7 @@ export interface AsyncFactoryProvider<T> {
 
 export type Provider<T> = ValueProvider<T> | FactoryProvider<T> | AsyncFactoryProvider<T>;
 
-export type Result<T> = { success: true; data: T } | { success: false; error: Error };
+export type Result<T, E extends Error = Error> = { success: true; data: T } | { success: false; error: E };
 
 export interface IContainer {
     register<T>(key: TypedToken<T>, provider: Provider<T>, options?: RegistrationOptions): void;
