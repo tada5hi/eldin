@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/tada5hi/eldin/compare/v1.0.0...v1.1.0) (2026-03-26)
+
+
+### Features
+
+* add async factory providers and resolveAsync ([#10](https://github.com/tada5hi/eldin/issues/10)) ([c7c7cab](https://github.com/tada5hi/eldin/commit/c7c7cabd07e5ea9cd47fe329a779ebae67794a2a))
+
 ## 1.0.0 (2026-03-26)
 
 
