@@ -62,7 +62,7 @@ export class Container implements IContainer {
 
             return { success: true, data };
         } catch (e) {
-            return { success: false, error: e as Error };
+            return { success: false, error: e as ContainerError };
         }
     }
 
@@ -78,7 +78,7 @@ export class Container implements IContainer {
 
             return { success: true, data };
         } catch (e) {
-            return { success: false, error: e as Error };
+            return { success: false, error: e as ContainerError };
         }
     }
 
