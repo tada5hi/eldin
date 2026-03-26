@@ -1,9 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { add } from '../../src';
+import {
+    Container, ContainerError, TypedToken,
+} from '../../src';
 
 describe('src/index.ts', () => {
-    it('should add numbers', () => {
-        const result = add(1, 2);
-        expect(result).toEqual(3);
+    it('should export Container class', () => {
+        expect(Container).toBeDefined();
+    });
+
+    it('should export ContainerError class', () => {
+        expect(ContainerError).toBeDefined();
+    });
+
+    it('should export TypedToken class', () => {
+        expect(TypedToken).toBeDefined();
     });
 });
