@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/tada5hi/eldin/compare/v1.1.0...v1.2.0) (2026-07-22)
+
+
+### Features
+
+* add multi-binding support (registerMany / resolveAll) ([#21](https://github.com/tada5hi/eldin/issues/21)) ([b8e4c49](https://github.com/tada5hi/eldin/commit/b8e4c4934ad771e7237a3a7438e47e040a88176e))
+
 ## [1.1.0](https://github.com/tada5hi/eldin/compare/v1.0.0...v1.1.0) (2026-03-26)
 
 
