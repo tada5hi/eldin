@@ -18,14 +18,15 @@
         "./package.json": "./package.json",
         ".": {
             "types": "./dist/index.d.mts",
-            "import": "./dist/index.mjs"
+            "import": "./dist/index.mjs",
+            "default": "./dist/index.mjs"
         }
     },
     "files": [
         "dist"
     ],
     "engines": {
-        "node": ">=22.0.0"
+        "node": ">=22.12.0"
     },
     "scripts": {
         "build": "tsdown",

@@ -38,8 +38,17 @@ export interface IContainer {
     register<T>(key: TypedToken<T>, provider: Provider<T>, options?: RegistrationOptions): void;
     register(key: ClassConstructor | symbol | string, provider: Provider<unknown>, options?: RegistrationOptions): void;
 
+    registerMany<T>(key: TypedToken<T>, provider: Provider<T>, options?: RegistrationOptions): void;
+    registerMany<T>(key: ClassConstructor | symbol | string, provider: Provider<T>, options?: RegistrationOptions): void;
+
     resolve<T>(key: TypedToken<T>): T;
     resolve<T>(key: ClassConstructor | symbol | string): T;
+
+    resolveAll<T>(key: TypedToken<T>): T[];
+    resolveAll<T>(key: ClassConstructor | symbol | string): T[];
+
+    resolveAllAsync<T>(key: TypedToken<T>): Promise<T[]>;
+    resolveAllAsync<T>(key: ClassConstructor | symbol | string): Promise<T[]>;
 
     tryResolve<T>(key: TypedToken<T>): Result<T>;
     tryResolve<T>(key: ClassConstructor | symbol | string): Result<T>;

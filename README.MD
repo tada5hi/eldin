@@ -192,6 +192,38 @@ container.register(SessionToken, {
 
 Value providers are always singleton by nature (the value already exists).
 
+## Multi-Binding
+
+Sometimes several implementations share a single key and you want *all* of them — plugin
+registries, a list of validators, a chain of format converters. Use `registerMany()` to append
+providers under one key and `resolveAll()` to resolve every one of them as an array, in
+registration order.
+
+```typescript
+const HandlerToken = new TypedToken<Handler>('handler');
+
+container.registerMany(HandlerToken, { useFactory: () => new JsonHandler() });
+container.registerMany(HandlerToken, { useFactory: () => new XmlHandler() });
+container.registerMany(HandlerToken, { useValue: new CsvHandler() });
+
+const handlers = container.resolveAll(HandlerToken); // [JsonHandler, XmlHandler, CsvHandler]
+```
+
+Multi-bindings are independent from single bindings on the same key: `register()` / `resolve()`
+address the single binding, while `registerMany()` / `resolveAll()` address the collection.
+`resolveAll()` returns an empty array when nothing is registered, and — like `resolve()` — walks
+the parent chain, appending inherited registrations after the local ones.
+
+Each registration honours its own `'singleton'` (default) or `'transient'` lifetime. The
+`'scoped'` lifetime is not supported for multi-bindings and throws a `ContainerError`. For
+collections containing async factory providers, use `resolveAllAsync()`:
+
+```typescript
+container.registerMany(HandlerToken, { useAsyncFactory: async () => new RemoteHandler() });
+
+const handlers = await container.resolveAllAsync(HandlerToken);
+```
+
 ## Container Hierarchy
 
 ### Child Containers
@@ -239,17 +271,20 @@ const container: IContainer = new Container();
 
 ### Sync Methods
 
-| Method                              | Description                                                                  |
-|-------------------------------------|------------------------------------------------------------------------------|
-| `register(key, provider, options?)` | Register a dependency. Re-registering replaces the provider and clears cache.|
-| `resolve(key)`                      | Resolve a dependency. Throws `ContainerError` if not found or if async.      |
-| `tryResolve(key)`                   | Safe resolve returning `Result<T>` (no throw).                               |
+| Method                                  | Description                                                                      |
+|-----------------------------------------|----------------------------------------------------------------------------------|
+| `register(key, provider, options?)`     | Register a dependency. Re-registering replaces the provider and clears cache.    |
+| `registerMany(key, provider, options?)` | Append a provider to the collection under `key` (multi-binding).                 |
+| `resolve(key)`                          | Resolve a dependency. Throws `ContainerError` if not found or if async.          |
+| `resolveAll(key)`                       | Resolve all providers registered under `key` as an array (empty if none).        |
+| `tryResolve(key)`                       | Safe resolve returning `Result<T>` (no throw).                                   |
 
 ### Async Methods
 
 | Method                   | Description                                                                     |
 |--------------------------|---------------------------------------------------------------------------------|
 | `resolveAsync(key)`      | Resolve any provider type asynchronously. Throws `ContainerError` if not found. |
+| `resolveAllAsync(key)`   | Resolve all providers under `key` (incl. async factories) as an array.          |
 | `tryResolveAsync(key)`   | Safe async resolve returning `Promise<Result<T>>` (no throw).                   |
 
 ### Container Methods
