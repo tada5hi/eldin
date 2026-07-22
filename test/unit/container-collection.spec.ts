@@ -175,6 +175,23 @@ describe('src/container.ts — multi-binding (registerMany / resolveAll)', () =>
 
             expect(() => container.resolveAll(token)).toThrow(ContainerError);
         });
+
+        it('should not resolve any entry when the collection contains an async provider', async () => {
+            const container = new Container();
+            const token = new TypedToken<number>('mixed');
+            const syncFactory = vi.fn(() => 1);
+
+            container.registerMany(token, { useFactory: syncFactory });
+            container.registerMany(token, { useAsyncFactory: async () => 2 });
+
+            // Rejected up-front, before the earlier sync factory runs — no partial state.
+            expect(() => container.resolveAll(token)).toThrow(ContainerError);
+            expect(syncFactory).not.toHaveBeenCalled();
+
+            // Async resolution still works and runs the sync factory exactly once.
+            await expect(container.resolveAllAsync(token)).resolves.toEqual([1, 2]);
+            expect(syncFactory).toHaveBeenCalledTimes(1);
+        });
     });
 
     // ---- has / unregister ----

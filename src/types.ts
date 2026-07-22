@@ -39,7 +39,7 @@ export interface IContainer {
     register(key: ClassConstructor | symbol | string, provider: Provider<unknown>, options?: RegistrationOptions): void;
 
     registerMany<T>(key: TypedToken<T>, provider: Provider<T>, options?: RegistrationOptions): void;
-    registerMany(key: ClassConstructor | symbol | string, provider: Provider<unknown>, options?: RegistrationOptions): void;
+    registerMany<T>(key: ClassConstructor | symbol | string, provider: Provider<T>, options?: RegistrationOptions): void;
 
     resolve<T>(key: TypedToken<T>): T;
     resolve<T>(key: ClassConstructor | symbol | string): T;

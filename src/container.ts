@@ -258,6 +258,14 @@ export class Container implements IContainer {
 
         const list = this.collections.get(k);
         if (list) {
+            // Reject the whole collection up-front if any provider is async, so a
+            // failed sync resolution never leaves earlier singletons half-cached.
+            for (const registration of list) {
+                if (this.isAsyncFactoryProvider(registration.provider)) {
+                    throw new ContainerError('Cannot resolve async provider synchronously. Use resolveAllAsync() instead.');
+                }
+            }
+
             for (const registration of list) {
                 output.push(this.resolveRegistration<T>(registration, origin));
             }
