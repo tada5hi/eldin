@@ -14,6 +14,14 @@ import type {
 
 type MapKey = symbol | string | (abstract new (...args: any[]) => any);
 
+type Registration<T = any> = {
+    provider: Provider<T>;
+    lifetime: `${Lifetime}`;
+    instance?: T;
+    resolved: boolean;
+    pending?: Promise<T>;
+};
+
 export class Container implements IContainer {
     protected providers: Map<MapKey, Provider<any>>;
 
@@ -22,6 +30,8 @@ export class Container implements IContainer {
     protected asyncResolving: Map<MapKey, Promise<any>>;
 
     protected lifetimes: Map<MapKey, `${Lifetime}`>;
+
+    protected collections: Map<MapKey, Registration[]>;
 
     protected parent?: Container;
 
@@ -34,6 +44,7 @@ export class Container implements IContainer {
         this.instances = new Map();
         this.asyncResolving = new Map();
         this.lifetimes = new Map();
+        this.collections = new Map();
         this.isScope = false;
     }
 
@@ -47,12 +58,31 @@ export class Container implements IContainer {
         this.asyncResolving.delete(k);
     }
 
+    registerMany<T>(key: ContainerKey<T>, provider: Provider<T>, options: RegistrationOptions = {}): void {
+        const lifetime = options.lifetime ?? Lifetime.SINGLETON;
+
+        if (lifetime === Lifetime.SCOPED) {
+            throw new ContainerError('The scoped lifetime is not supported for multi-bindings.');
+        }
+
+        const k = this.normalizeKey(key);
+        const registration: Registration<T> = { provider, lifetime, resolved: false };
+
+        const list = this.collections.get(k);
+        if (list) {
+            list.push(registration);
+        } else {
+            this.collections.set(k, [registration]);
+        }
+    }
+
     unregister(key: ContainerKey): void {
         const k = this.normalizeKey(key);
         this.providers.delete(k);
         this.instances.delete(k);
         this.asyncResolving.delete(k);
         this.lifetimes.delete(k);
+        this.collections.delete(k);
     }
 
     // ----------------------------------------------------
@@ -89,10 +119,20 @@ export class Container implements IContainer {
 
     // ----------------------------------------------------
 
+    resolveAll<T>(key: ContainerKey<T>): T[] {
+        return this.resolveAllInternal(key, this);
+    }
+
+    async resolveAllAsync<T>(key: ContainerKey<T>): Promise<T[]> {
+        return this.resolveAllAsyncInternal(key, this);
+    }
+
+    // ----------------------------------------------------
+
     has(key: ContainerKey): boolean {
         const k = this.normalizeKey(key);
 
-        if (this.providers.has(k)) {
+        if (this.providers.has(k) || this.collections.has(k)) {
             return true;
         }
 
@@ -210,6 +250,91 @@ export class Container implements IContainer {
         }
 
         throw new ContainerError(`No registration found for: ${String(key)}`);
+    }
+
+    protected resolveAllInternal<T>(key: ContainerKey<T>, origin: Container): T[] {
+        const k = this.normalizeKey(key);
+        const output: T[] = [];
+
+        const list = this.collections.get(k);
+        if (list) {
+            for (const registration of list) {
+                output.push(this.resolveRegistration<T>(registration, origin));
+            }
+        }
+
+        if (this.parent) {
+            output.push(...this.parent.resolveAllInternal<T>(key, origin));
+        }
+
+        return output;
+    }
+
+    protected async resolveAllAsyncInternal<T>(key: ContainerKey<T>, origin: Container): Promise<T[]> {
+        const k = this.normalizeKey(key);
+        const output: T[] = [];
+
+        const list = this.collections.get(k);
+        if (list) {
+            for (const registration of list) {
+                output.push(await this.resolveRegistrationAsync<T>(registration, origin));
+            }
+        }
+
+        if (this.parent) {
+            output.push(...await this.parent.resolveAllAsyncInternal<T>(key, origin));
+        }
+
+        return output;
+    }
+
+    protected resolveRegistration<T>(registration: Registration<T>, origin: Container): T {
+        if (registration.resolved) {
+            return registration.instance as T;
+        }
+
+        if (this.isAsyncFactoryProvider(registration.provider)) {
+            throw new ContainerError('Cannot resolve async provider synchronously. Use resolveAllAsync() instead.');
+        }
+
+        const instance = this.isValueProvider(registration.provider) ?
+            registration.provider.useValue as T :
+            registration.provider.useFactory(origin) as T;
+
+        if (registration.lifetime === Lifetime.SINGLETON) {
+            registration.instance = instance;
+            registration.resolved = true;
+        }
+
+        return instance;
+    }
+
+    protected async resolveRegistrationAsync<T>(registration: Registration<T>, origin: Container): Promise<T> {
+        if (registration.resolved) {
+            return registration.instance as T;
+        }
+
+        if (registration.pending) {
+            return registration.pending as Promise<T>;
+        }
+
+        const pending = this.createInstance<T>(registration.provider, origin);
+
+        if (registration.lifetime === Lifetime.SINGLETON) {
+            registration.pending = pending;
+
+            try {
+                const instance = await pending;
+                registration.instance = instance;
+                registration.resolved = true;
+
+                return instance;
+            } finally {
+                registration.pending = undefined;
+            }
+        }
+
+        return pending;
     }
 
     private async createInstance<T>(provider: Provider<T>, origin: Container): Promise<T> {
