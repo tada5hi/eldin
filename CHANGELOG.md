@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/tada5hi/eldin/compare/v1.2.0...v1.3.0) (2026-07-29)
+
+
+### Features
+
+* add CommonJS build output ([#25](https://github.com/tada5hi/eldin/issues/25)) ([3dcebc8](https://github.com/tada5hi/eldin/commit/3dcebc89764be46451b7ba3565014299ae09e1c4))
+
 ## [1.2.0](https://github.com/tada5hi/eldin/compare/v1.1.0...v1.2.0) (2026-07-22)
 
 
