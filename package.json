@@ -12,21 +12,27 @@
         "type": "git",
         "url": "https://github.com/tada5hi/eldin.git"
     },
-    "main": "dist/index.mjs",
-    "types": "dist/index.d.mts",
+    "main": "dist/index.cjs",
+    "module": "dist/index.mjs",
+    "types": "dist/index.d.cts",
     "exports": {
         "./package.json": "./package.json",
         ".": {
-            "types": "./dist/index.d.mts",
-            "import": "./dist/index.mjs",
-            "default": "./dist/index.mjs"
+            "import": {
+                "types": "./dist/index.d.mts",
+                "default": "./dist/index.mjs"
+            },
+            "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+            }
         }
     },
     "files": [
         "dist"
     ],
     "engines": {
-        "node": ">=22.12.0"
+        "node": ">=20.0.0"
     },
     "scripts": {
         "build": "tsdown",
