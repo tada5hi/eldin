@@ -17,9 +17,9 @@ npm run lint
 npm run lint:fix
 ```
 
-- **Node.js**: >=22.0.0
+- **Node.js**: >=20.0.0 to consume; >=22.0.0 to develop (test tooling)
 - **Package manager**: npm
-- **Module system**: ESM only (`"type": "module"`)
+- **Module system**: ESM source (`"type": "module"`); ships both ESM and CJS builds
 - **Build tool**: tsdown (outputs to `dist/`)
 
 ## Detailed Guides

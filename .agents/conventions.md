@@ -4,7 +4,7 @@
 
 - **ESLint**: `@tada5hi/eslint-config` (extends shared config)
 - **TypeScript**: Strict mode via `@tada5hi/tsconfig`, target ES2022, ESNext modules, bundler resolution
-- **Module system**: ESM only -- use `.ts` extensions in imports (e.g., `import { Foo } from './foo.ts'`)
+- **Module system**: source is ESM -- use `.ts` extensions in imports (e.g., `import { Foo } from './foo.ts'`); the package ships both ESM and CJS builds
 - Run `npm run lint` to check, `npm run lint:fix` to auto-fix
 
 ## Commit Messages
@@ -35,5 +35,6 @@ GitHub Actions workflows on push/PR to `develop`, `master`, `next`, `beta`, `alp
 
 - **Tool**: tsdown
 - **Entry**: `src/index.ts`
-- **Output**: `dist/index.mjs` (ESM) + `dist/index.d.mts` (declarations) + sourcemaps
+- **Output**: `dist/index.mjs` (ESM) + `dist/index.cjs` (CJS) + `dist/index.d.mts` / `dist/index.d.cts` (declarations) + sourcemaps
+- **Consumers**: resolved via the `exports` map -- `import` gets the ESM build, `require()` gets the CJS build (no `require(esm)` needed, so Node >=20 is supported)
 - **Exported paths**: `.` (main) and `./package.json`

@@ -20,7 +20,7 @@ test/
     error.spec.ts           # Unit tests for ContainerError
     index.spec.ts           # Unit tests for public API exports
   vitest.config.ts  # Vitest configuration with coverage thresholds
-dist/               # Build output (ESM + declarations + sourcemaps)
+dist/               # Build output (ESM + CJS + declarations + sourcemaps)
 ```
 
 ## Module Responsibilities
@@ -38,7 +38,7 @@ dist/               # Build output (ESM + declarations + sourcemaps)
 
 | Dependency               | Purpose                          |
 |--------------------------|----------------------------------|
-| `tsdown`                 | Build (ESM bundle + .d.mts)      |
+| `tsdown`                 | Build (ESM + CJS bundles + .d.mts/.d.cts) |
 | `vitest`                 | Test runner                      |
 | `eslint` + `@tada5hi/eslint-config` | Linting               |
 | `husky` + `@tada5hi/commitlint-config` | Git hooks + commit message validation |
