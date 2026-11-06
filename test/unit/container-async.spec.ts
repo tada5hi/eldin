@@ -1,6 +1,13 @@
-import { describe, expect, it, vi } from 'vitest';
 import {
-    Container, ContainerError, TypedToken,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
+import {
+    Container,
+    ContainerError,
+    TypedToken,
 } from '../../src';
 
 describe('src/container.ts (async)', () => {
@@ -14,6 +21,7 @@ describe('src/container.ts (async)', () => {
             container.register(token, { useAsyncFactory: async () => 'hello async' });
 
             const result = await container.resolveAsync(token);
+
             expect(result).toBe('hello async');
         });
 
@@ -23,9 +31,7 @@ describe('src/container.ts (async)', () => {
             const token = new TypedToken<string>('svc');
 
             container.register(depToken, { useValue: 42 });
-            container.register(token, {
-                useAsyncFactory: async (c) => `value-${c.resolve(depToken)}`,
-            });
+            container.register(token, { useAsyncFactory: async (c) => `value-${c.resolve(depToken)}` });
 
             expect(await container.resolveAsync(token)).toBe('value-42');
         });
@@ -155,6 +161,7 @@ describe('src/container.ts (async)', () => {
             container.register(token, { useAsyncFactory: async () => 42 });
 
             const result = await container.tryResolveAsync(token);
+
             expect(result).toEqual({ success: true, data: 42 });
         });
 
@@ -163,6 +170,7 @@ describe('src/container.ts (async)', () => {
             const token = new TypedToken<number>('missing');
 
             const result = await container.tryResolveAsync(token);
+
             expect(result.success).toBe(false);
 
             if (!result.success) {
@@ -175,10 +183,13 @@ describe('src/container.ts (async)', () => {
             const token = new TypedToken<string>('fail');
 
             container.register(token, {
-                useAsyncFactory: async () => { throw new Error('boom'); },
+                useAsyncFactory: async () => {
+                    throw new Error('boom');
+                },
             });
 
             const result = await container.tryResolveAsync(token);
+
             expect(result.success).toBe(false);
 
             if (!result.success) {
@@ -204,6 +215,7 @@ describe('src/container.ts (async)', () => {
             container.register(token, { useAsyncFactory: async () => 'from-parent' });
 
             const child = container.createChild();
+
             expect(await child.resolveAsync(token)).toBe('from-parent');
         });
     });

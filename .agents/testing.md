@@ -2,7 +2,7 @@
 
 ## Test Runner
 
-- **Framework**: Vitest v4
+- **Framework**: Vitest 5
 - **Config**: `test/vitest.config.ts`
 - **Test location**: `test/unit/**/*.{test,spec}.{js,ts}`
 

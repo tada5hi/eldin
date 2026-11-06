@@ -1,4 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
+import {
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 import { Container, ContainerError, TypedToken } from '../../src';
 
 describe('src/container.ts — createChild', () => {
@@ -9,6 +14,7 @@ describe('src/container.ts — createChild', () => {
         parent.register(token, { useValue: 42 });
 
         const child = parent.createChild();
+
         expect(child.resolve(token)).toBe(42);
     });
 
@@ -19,6 +25,7 @@ describe('src/container.ts — createChild', () => {
         parent.register(token, { useValue: 'parent' });
 
         const child = parent.createChild();
+
         child.register(token, { useValue: 'child' });
 
         expect(child.resolve(token)).toBe('child');
@@ -30,6 +37,7 @@ describe('src/container.ts — createChild', () => {
         const token = new TypedToken<string>('val');
 
         const child = parent.createChild();
+
         child.register(token, { useValue: 'child-only' });
 
         expect(child.resolve(token)).toBe('child-only');
@@ -43,6 +51,7 @@ describe('src/container.ts — createChild', () => {
         parent.register(token, { useValue: 1 });
 
         const child = parent.createChild();
+
         expect(child.has(token)).toBe(true);
     });
 
@@ -90,6 +99,7 @@ describe('src/container.ts — createChild', () => {
         parent.register(svcToken, { useFactory: (c) => c.resolve(depToken) });
 
         const child = parent.createChild();
+
         child.register(depToken, { useValue: 'child-dep' });
 
         // Factory in parent should use child's dep when resolved from child
