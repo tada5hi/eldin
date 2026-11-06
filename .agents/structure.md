@@ -43,3 +43,5 @@ dist/               # Build output (ESM + CJS + declarations + sourcemaps)
 | `eslint` + `@tada5hi/eslint-config` | Linting               |
 | `husky` + `@tada5hi/commitlint-config` | Git hooks + commit message validation |
 | `typescript`             | Type checking (noEmit mode)      |
+
+README visuals live in `.github/assets/`: the approved logo and the source-based mechanism diagram.
