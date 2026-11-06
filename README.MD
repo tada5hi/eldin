@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/tada5hi/eldin/ad51d28f67103c7b325bc2736c07b128856a9411/.github/assets/logo.svg" width="144" height="144" alt="eldin logo">
+  <img src="https://raw.githubusercontent.com/tada5hi/eldin/088408f8a9421e22533d7f0f6ad65afcf918323a/.github/assets/logo.svg" width="144" height="144" alt="eldin logo">
   <h1>eldin</h1>
   <p><strong>A lightweight, type-safe dependency injection container for TypeScript with typed tokens, lifetime management, and modular application orchestration.</strong></p>
   <p><a href="https://www.npmjs.com/package/eldin"><img src="https://img.shields.io/npm/v/eldin" alt="npm version"></a> <a href="https://github.com/tada5hi/eldin/actions/workflows/main.yml"><img src="https://github.com/tada5hi/eldin/actions/workflows/main.yml/badge.svg" alt="CI status"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/tada5hi/eldin" alt="License"></a></p>
@@ -35,7 +35,7 @@ container.register(Endpoint, {
 console.log(container.resolve(Endpoint)); // http://localhost:3000
 ```
 
-<img src="https://raw.githubusercontent.com/tada5hi/eldin/ad51d28f67103c7b325bc2736c07b128856a9411/.github/assets/mechanism.svg" width="960" alt="register() defaults to singleton. Singleton factories cache in the registration container, transient factories run on each resolution, and scoped factories cache in the resolving scope.">
+<img src="https://raw.githubusercontent.com/tada5hi/eldin/088408f8a9421e22533d7f0f6ad65afcf918323a/.github/assets/mechanism.svg" width="960" alt="register() defaults to singleton. Singleton factories cache in the registration container, transient factories run on each resolution, and scoped factories cache in the resolving scope.">
 
 ## Installation
 
