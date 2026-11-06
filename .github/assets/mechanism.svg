@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="eldin-title eldin-desc">
+<title id="eldin-title">Choose where a resolved value lives</title><desc id="eldin-desc">register() defaults to singleton. Singleton factories cache in the registration container, transient factories run on each resolution, and scoped factories cache in the resolving scope.</desc>
+<style>:root{--panel:#f7f8fc;--card:#ffffff;--text:#20283d;--muted:#526078;--line:#81620b;--accent:#81620b}@media(prefers-color-scheme:dark){:root{--panel:#121a28;--card:#1d293c;--text:#edf3ff;--muted:#bccade;--line:#e9c75d;--accent:#e9c75d}}text{font-family:Arial,sans-serif;fill:var(--text)}.label{font-size:17px;fill:var(--muted)}.heading{font-size:22px;font-weight:700}.code{font-family:monospace;font-size:18px}.card{fill:var(--card);stroke:var(--line);stroke-width:2}.arrow{fill:none;stroke:var(--line);stroke-width:2;marker-end:url(#eldin-arrow)}</style>
+<defs><marker id="eldin-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="var(--line)"/></marker></defs>
+<rect x="2" y="2" width="956" height="356" rx="20" fill="var(--panel)"/>
+<text x="30" y="40" class="heading">One registration, an explicit lifetime</text>
+<rect x="30" y="120" width="240" height="120" rx="12" class="card"/><text x="50" y="158" class="code">register(token,</text><text x="50" y="187" class="code">  { useFactory },</text><text x="50" y="216" class="code">  { lifetime })</text>
+<path d="M270 180H320V105H360" class="arrow"/><path d="M320 180H360" class="arrow"/><path d="M320 180V275H360" class="arrow"/>
+<rect x="365" y="65" width="560" height="75" rx="12" class="card"/><text x="385" y="95" class="heading">singleton · default</text><text x="385" y="122" class="label">Cache in the container holding the registration.</text>
+<rect x="365" y="150" width="560" height="75" rx="12" class="card"/><text x="385" y="180" class="heading">transient</text><text x="385" y="207" class="label">Call the factory on each resolution.</text>
+<rect x="365" y="240" width="560" height="95" rx="12" class="card"/><text x="385" y="270" class="heading">scoped</text><text x="385" y="297" class="label">Cache in the resolving scope from createScope().</text><text x="385" y="321" class="label">Outside a scope: ContainerError.</text>
+</svg>
