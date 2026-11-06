@@ -37,6 +37,37 @@ console.log(container.resolve(Endpoint)); // http://localhost:3000
 
 <img src="https://raw.githubusercontent.com/tada5hi/eldin/088408f8a9421e22533d7f0f6ad65afcf918323a/.github/assets/mechanism.svg" width="960" alt="register() defaults to singleton. Singleton factories cache in the registration container, transient factories run on each resolution, and scoped factories cache in the resolving scope.">
 
+**Table of Contents**
+
+- [Why eldin?](#why-eldin)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Quick Start](#quick-start)
+- [Key Concepts](#key-concepts)
+  - [Typed Tokens](#typed-tokens)
+  - [Untyped Keys](#untyped-keys)
+- [Providers](#providers)
+  - [Value Provider](#value-provider)
+  - [Factory Provider](#factory-provider)
+  - [Async Factory Provider](#async-factory-provider)
+- [Lifetime Management](#lifetime-management)
+- [Multi-Binding](#multi-binding)
+- [Container Hierarchy](#container-hierarchy)
+  - [Child Containers](#child-containers)
+  - [Scoped Containers](#scoped-containers)
+- [API Reference](#api-reference)
+  - [Sync Methods](#sync-methods)
+  - [Async Methods](#async-methods)
+  - [Container Methods](#container-methods)
+  - [Safe Resolution](#safe-resolution)
+  - [Re-registration](#re-registration)
+- [Error Handling](#error-handling)
+- [Usage in Tests](#usage-in-tests)
+- [API](#api)
+- [Notes](#notes)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Installation
 
 ```sh
