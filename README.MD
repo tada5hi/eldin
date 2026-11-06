@@ -1,18 +1,47 @@
-# eldin 💉
+<div align="center">
+  <img src="https://raw.githubusercontent.com/tada5hi/eldin/088408f8a9421e22533d7f0f6ad65afcf918323a/.github/assets/logo.svg" width="144" height="144" alt="eldin logo">
+  <h1>eldin</h1>
+  <p><strong>A lightweight, type-safe dependency injection container for TypeScript with typed tokens, lifetime management, and modular application orchestration.</strong></p>
+  <p><a href="https://www.npmjs.com/package/eldin"><img src="https://img.shields.io/npm/v/eldin" alt="npm version"></a> <a href="https://github.com/tada5hi/eldin/actions/workflows/main.yml"><img src="https://github.com/tada5hi/eldin/actions/workflows/main.yml/badge.svg" alt="CI status"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/tada5hi/eldin" alt="License"></a></p>
+  <p><a href="#why-eldin">Why eldin?</a> · <a href="#installation">Install</a> · <a href="#usage">Usage</a> · <a href="#api">API</a></p>
+</div>
 
-[![npm version][npm-version-src]][npm-version-href]
-[![codecov][codecov-src]][codecov-href]
-[![Master Workflow][workflow-src]][workflow-href]
-[![Known Vulnerabilities][snyk-src]][snyk-href]
-[![Conventional Commits][conventional-src]][conventional-href]
+---
 
-A lightweight, type-safe dependency injection container for TypeScript.
+## Why eldin?
 
-No decorators. No metadata reflection. No magic. Just typed tokens, factory/value providers, and lifetime management.
+Wire your services once, resolve them with typed keys, and choose how long each factory result lives.
+
+| Concern | Without it | With eldin |
+| --- | --- | --- |
+| Wiring | Pass dependencies through each construction site | Register a factory that resolves its own dependencies |
+| Types | Keep lookup keys and result types aligned yourself | `TypedToken<T>` carries the result type |
+| Lifetimes | Maintain shared instances and request caches | Choose singleton, transient or scoped registrations |
+| Async setup | Share and clear initialization promises yourself | Singleton and scoped async resolutions share pending work |
+| Overrides | Rebuild the dependency graph for a test | Override a registration in a child container |
+
+Manual construction works well for a small graph. A container becomes useful when you need the same wiring with different lifetimes or overrides:
+
+```typescript
+import { Container, TypedToken } from 'eldin';
+
+const Config = new TypedToken<{ port: number }>('config');
+const Endpoint = new TypedToken<string>('endpoint');
+const container = new Container();
+container.register(Config, { useValue: { port: 3000 } });
+container.register(Endpoint, {
+    useFactory: (c) => `http://localhost:${c.resolve(Config).port}`,
+});
+console.log(container.resolve(Endpoint)); // http://localhost:3000
+```
+
+<img src="https://raw.githubusercontent.com/tada5hi/eldin/088408f8a9421e22533d7f0f6ad65afcf918323a/.github/assets/mechanism.svg" width="960" alt="register() defaults to singleton. Singleton factories cache in the registration container, transient factories run on each resolution, and scoped factories cache in the resolving scope.">
 
 **Table of Contents**
 
+- [Why eldin?](#why-eldin)
 - [Installation](#installation)
+- [Usage](#usage)
 - [Quick Start](#quick-start)
 - [Key Concepts](#key-concepts)
   - [Typed Tokens](#typed-tokens)
@@ -22,6 +51,7 @@ No decorators. No metadata reflection. No magic. Just typed tokens, factory/valu
   - [Factory Provider](#factory-provider)
   - [Async Factory Provider](#async-factory-provider)
 - [Lifetime Management](#lifetime-management)
+- [Multi-Binding](#multi-binding)
 - [Container Hierarchy](#container-hierarchy)
   - [Child Containers](#child-containers)
   - [Scoped Containers](#scoped-containers)
@@ -33,16 +63,26 @@ No decorators. No metadata reflection. No magic. Just typed tokens, factory/valu
   - [Re-registration](#re-registration)
 - [Error Handling](#error-handling)
 - [Usage in Tests](#usage-in-tests)
+- [API](#api)
+- [Notes](#notes)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Installation
 
-```bash
-npm install eldin --save
+```sh
+npm install eldin
 ```
 
+Requires Node.js 20 or newer. ESM, CommonJS and TypeScript declarations are included. No decorators or reflection metadata are required.
+
+## Usage
+
+Start with the [quick start](#quick-start), then use the provider, lifetime and hierarchy sections for the full reference. [Safe resolution](#safe-resolution) and [error handling](#error-handling) cover failure paths.
+
 ## Quick Start
+
+`Database` and `UserService` in the wiring examples are your application classes; eldin supplies the container and tokens. Provider examples reuse those tokens and classes.
 
 ```typescript
 import { Container, TypedToken } from 'eldin';
@@ -74,15 +114,19 @@ const userService = container.resolve(UserServiceToken);
 `TypedToken<T>` carries a phantom type parameter that flows through `register()` and `resolve()`, giving you compile-time type safety without manual generic annotations.
 
 ```typescript
-import { TypedToken } from 'eldin';
+import { Container, TypedToken } from 'eldin';
 
-// Each token encodes the type it resolves to
+type Config = { port: number };
 const ConfigToken = new TypedToken<Config>('Config');
-const LoggerToken = new TypedToken<Logger>('Logger');
+const LoggerToken = new TypedToken<typeof console>('Logger');
+const container = new Container();
+container.register(ConfigToken, { useValue: { port: 3000 } });
+container.register(LoggerToken, { useValue: console });
 
-// resolve() infers the return type from the token
-const config = container.resolve(ConfigToken);  // Config
-const logger = container.resolve(LoggerToken);  // Logger
+const config = container.resolve(ConfigToken); // Config
+const logger = container.resolve(LoggerToken); // typeof console
+console.log(config.port); // 3000
+logger.log('Ready'); // Ready
 ```
 
 Each `TypedToken` instance has a unique `id` (a `Symbol`), so two tokens with the same name but different types will never collide:
@@ -161,7 +205,7 @@ const [db1, db2] = await Promise.all([
 // db1 === db2
 ```
 
-`resolveAsync()` also works with value providers and sync factory providers, making it safe to use as a universal resolution method when your dependency graph contains a mix of sync and async providers.
+`resolveAsync()` also works with value providers and sync factory providers, making it suitable as a universal resolution method when your dependency graph contains a mix of sync and async providers.
 
 ## Lifetime Management
 
@@ -174,7 +218,7 @@ Control how often a factory is called via the `lifetime` option:
 | `'scoped'`    | Created once per scope, cached within that scope           |
 
 ```typescript
-// Singleton (default) — created once, cached forever
+// Singleton (default) — cached until re-registration or unregister
 container.register(DatabaseToken, {
     useFactory: () => new Database(),
 });
@@ -190,7 +234,7 @@ container.register(SessionToken, {
 }, { lifetime: 'scoped' });
 ```
 
-Value providers are always singleton by nature (the value already exists).
+Value providers return the same pre-constructed value regardless of lifetime. A scoped value provider still requires resolution inside a scope.
 
 ## Multi-Binding
 
@@ -258,6 +302,8 @@ const s2 = scope.resolve(SessionToken);
 
 Resolving a scoped registration outside of a scope throws a `ContainerError`.
 
+Register scoped services before creating scopes. Factories receive the originating container, allowing child overrides to participate in dependency resolution. Containers do not automatically dispose of resolved resources.
+
 ## API Reference
 
 The `Container` class implements the `IContainer` interface. Program against the interface to decouple your application from the concrete implementation.
@@ -298,24 +344,43 @@ const container: IContainer = new Container();
 
 ### Safe Resolution
 
-Both `tryResolve()` and `tryResolveAsync()` return a discriminated union instead of throwing:
+Use `tryResolve()` when a missing registration or a factory error should be part of normal control flow. It returns a `Result<T>` discriminated union instead of throwing. Check `success` before accessing `data` or `error`:
 
 ```typescript
-const result = container.tryResolve(DatabaseToken);
+import { Container, TypedToken } from 'eldin';
 
+const ConfigToken = new TypedToken<{ port: number }>('Config');
+const container = new Container();
+container.register(ConfigToken, { useValue: { port: 3000 } });
+
+const result = container.tryResolve(ConfigToken);
 if (result.success) {
-    console.log(result.data); // Database
+    console.log(result.data.port); // 3000, inferred from the token
 } else {
-    console.error(result.error); // Error
-}
-
-// Async variant
-const asyncResult = await container.tryResolveAsync(RemoteConfigToken);
-
-if (asyncResult.success) {
-    console.log(asyncResult.data);
+    console.error(result.error);
 }
 ```
+
+`tryResolveAsync()` awaits every provider kind and captures rejected initialization in the same result shape. A failure does not become a successful `undefined` value:
+
+```typescript
+import { Container, TypedToken } from 'eldin';
+
+const RemoteConfigToken = new TypedToken<{ port: number }>('RemoteConfig');
+const container = new Container();
+container.register(RemoteConfigToken, {
+    useAsyncFactory: async () => { throw new Error('Configuration unavailable'); },
+});
+
+const result = await container.tryResolveAsync(RemoteConfigToken);
+if (result.success) {
+    console.log(result.data.port);
+} else {
+    console.log(result.error.message); // Configuration unavailable
+}
+```
+
+For singleton and scoped async providers, concurrent resolutions share pending initialization. A failed initialization clears the pending promise, so a later resolution can try again. `tryResolve()` does not turn an async provider into a synchronous one: use `tryResolveAsync()` for async factories.
 
 ### Re-registration
 
@@ -331,38 +396,50 @@ container.resolve(ConfigToken); // prodConfig (cache cleared)
 
 ## Error Handling
 
-When `resolve()` is called with an unregistered key, it throws a `ContainerError`:
+`resolve()` throws `ContainerError` for an unregistered key. `resolveAsync()` rejects for the same condition. Catch the error when failure should stop the current operation, or use [safe resolution](#safe-resolution) when you want a result value:
 
 ```typescript
-import { ContainerError } from 'eldin';
+import { Container, ContainerError, TypedToken } from 'eldin';
 
+const UnknownToken = new TypedToken<string>('Unknown');
+const container = new Container();
 try {
     container.resolve(UnknownToken);
 } catch (error) {
     if (error instanceof ContainerError) {
-        console.error(error.message); // "No registration found for: ..."
+        console.log(error.message); // No registration found for: TypedToken(Unknown)
+    } else {
+        throw error;
     }
 }
 ```
 
-`resolve()` also throws if the provider is async — use `resolveAsync()` instead:
+Synchronous resolution rejects an async factory rather than returning its promise. Resolve the same token asynchronously:
 
 ```typescript
-// This throws: "Cannot resolve async provider synchronously ... Use resolveAsync()"
-container.resolve(AsyncToken);
+import { Container, ContainerError, TypedToken } from 'eldin';
 
-// This works
-const value = await container.resolveAsync(AsyncToken);
-```
-
-To avoid exceptions entirely, use `tryResolve()` or `tryResolveAsync()`:
-
-```typescript
-const result = container.tryResolve(MaybeToken);
-if (!result.success) {
-    console.warn('Not registered:', result.error.message);
+const AsyncToken = new TypedToken<number>('Async');
+const container = new Container();
+container.register(AsyncToken, { useAsyncFactory: async () => 42 });
+try {
+    container.resolve(AsyncToken);
+} catch (error) {
+    console.log(error instanceof ContainerError); // true
 }
+console.log(await container.resolveAsync(AsyncToken)); // 42
 ```
+
+| Condition | Resolution behavior | Handling |
+| --- | --- | --- |
+| Missing single binding | `resolve()` throws; `resolveAsync()` rejects | Catch `ContainerError` or inspect a `tryResolve` result |
+| Async factory through a sync method | `resolve()` / `resolveAll()` throw | Use `resolveAsync()` / `resolveAllAsync()` |
+| Scoped binding outside a scope | Resolution fails with `ContainerError` | Resolve from `createScope()` |
+| Scoped multi-binding | `registerMany()` throws immediately | Choose singleton or transient for collection entries |
+| Factory throws or rejects | The original error propagates | Catch it or inspect a `tryResolve` result |
+| No collection binding | `resolveAll()` returns `[]` | No missing-binding exception is raised |
+
+The `tryResolve` methods capture resolution failures; they do not wrap errors from `registerMany()` or other operations. Application factories should throw `Error` objects so the declared `Result<T>` error shape matches the thrown value.
 
 ## Usage in Tests
 
@@ -385,25 +462,33 @@ container.register(UserServiceToken, {
 const service = container.resolve(UserServiceToken);
 ```
 
+## API
+
+| Export | Kind | Purpose |
+| --- | --- | --- |
+| `Container` | Class | Registration, resolution and container hierarchy |
+| `TypedToken<T>` | Class | Typed key with `id`, `name` and `toString()` |
+| `Lifetime` | Enum | `SINGLETON`, `TRANSIENT`, `SCOPED` |
+| `ContainerError` | Error class | Missing registration, invalid lifetime or sync/async misuse |
+| `IContainer` | Interface | Container contract for factories and consumers |
+| `ContainerKey<T>` | Type | Typed token, constructor, symbol or string |
+| `RegistrationOptions` | Interface | Optional `lifetime` |
+| `ValueProvider<T>`, `FactoryProvider<T>`, `AsyncFactoryProvider<T>` | Interfaces | The three provider shapes |
+| `Provider<T>` | Type | Union of provider shapes |
+| `Result<T, E>` | Type | `{ success: true, data }` or `{ success: false, error }` |
+
+## Notes
+
+- **Cleanup:** containers do not call disposal hooks. Close connections and other resources in your application.
+- **Registration:** use shared token instances across modules. Recreating a token with the same name creates a different key.
+- **Errors:** factory errors propagate through `resolve` methods and are captured by `tryResolve` methods.
+
 ## Contributing
 
-Before starting to work on a pull request, it is important to review the guidelines for
-[contributing](./CONTRIBUTING.md) and the [code of conduct](./CODE_OF_CONDUCT.md).
-These guidelines will help to ensure that contributions are made effectively and are accepted.
+Read the [contribution guidelines](CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
 Made with 💚
 
-Published under [MIT License](./LICENSE).
-
-[npm-version-src]: https://badge.fury.io/js/eldin.svg
-[npm-version-href]: https://npmjs.com/package/eldin
-[codecov-src]: https://codecov.io/gh/tada5hi/eldin/branch/master/graph/badge.svg?token=4KNSG8L13V
-[codecov-href]: https://codecov.io/gh/tada5hi/eldin
-[workflow-src]: https://github.com/tada5hi/eldin/workflows/CI/badge.svg
-[workflow-href]: https://github.com/tada5hi/eldin
-[snyk-src]: https://snyk.io/test/github/tada5hi/eldin/badge.svg?targetFile=package.json
-[snyk-href]: https://snyk.io/test/github/tada5hi/eldin?targetFile=package.json
-[conventional-src]: https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white
-[conventional-href]: https://conventionalcommits.org
+Published under the [MIT License](LICENSE).

@@ -29,3 +29,7 @@ npm run lint:fix
 - **[Architecture](.agents/architecture.md)** -- Design patterns, type system, and data flow
 - **[Testing](.agents/testing.md)** -- Test runner, conventions, and coverage thresholds
 - **[Conventions](.agents/conventions.md)** -- Code style, commit conventions, CI/CD, and release process
+
+### Writing agent docs
+
+Keep existing commands, paths and factual descriptions current. Add guide content only for an invariant or a cross-cutting rule. Edit the existing statement and describe current behavior. Defect stories, test inventories and change history belong in PRs or commits. `npm run lint` enforces agent-doc size and history checks through the shared ESLint config.

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="eldin-b-title eldin-b-desc">
+<title id="eldin-b-title">eldin — Provider coupling</title>
+<desc id="eldin-b-desc">A typed token and a matching provider slot form a freestanding coupling.</desc>
+<style>
+:root{--accent:#bc7938;--second:#527baf;--ink:#253447;--paper:#f7fafc;--line:#8394a7;--wash:#bc793818}
+@media(prefers-color-scheme:dark){:root{--ink:#e4ebf3;--paper:#182332;--line:#8495aa;--wash:#bc793822}}
+.a{stroke:var(--accent)}.b{stroke:var(--second)}.af{fill:var(--accent)}.bf{fill:var(--second)}.ink{fill:var(--ink)}.paper{stroke:var(--line)}.line{stroke:var(--line)}.wash{fill:var(--wash)}.white{fill:#fff}.neutral{fill:var(--paper)}
+</style>
+<path d="M31 65 H101 V97 H128 V159 H101 V191 H31 Z" class="a" stroke-width="6" fill="var(--wash)" stroke-linecap="round" stroke-linejoin="round" /><path d="M160 42 H224 V214 H160 V169 H185 V87 H160 Z" class="b" stroke-width="6" fill="var(--paper)" stroke-linecap="round" stroke-linejoin="round" /><path d="M51 95 H79 M65 95 V153" class="a" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round" /><path d="M132 128 H170 M160 118 L170 128 L160 138" class="b" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" /><circle cx="193" cy="61" r="5" class="bf" /><circle cx="193" cy="195" r="5" class="bf" /><path d="M53 219 H106 M53 231 H86" class="line" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
