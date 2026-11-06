@@ -17,7 +17,8 @@ npm run lint
 npm run lint:fix
 ```
 
-- **Node.js**: >=20.0.0 to consume; 24.11+ on Node 24, or Node 26+, to develop (ESLint, Vitest and tsdown)
+- **Node.js (package runtime)**: `>=20.0.0`
+- **Node.js (development tooling)**: `^24.11.0 || >=26.0.0`; `.nvmrc` selects Node 24.
 - **Package manager**: npm
 - **Module system**: ESM source (`"type": "module"`); ships both ESM and CJS builds
 - **Build tool**: tsdown (outputs to `dist/`)
