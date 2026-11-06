@@ -14,18 +14,26 @@ type ClassConstructor<T = any> = {
 
 export type ContainerKey<T = any> = TypedToken<T> | ClassConstructor<T> | symbol | string;
 
+// Public interface name is part of the declaration-merging API.
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface RegistrationOptions {
     lifetime?: `${Lifetime}`;
 }
 
+// Public interface name is part of the declaration-merging API.
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface ValueProvider<T> {
     useValue: T;
 }
 
+// Public interface name is part of the declaration-merging API.
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface FactoryProvider<T> {
     useFactory: (container: IContainer) => T;
 }
 
+// Public interface name is part of the declaration-merging API.
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface AsyncFactoryProvider<T> {
     useAsyncFactory: (container: IContainer) => Promise<T>;
 }

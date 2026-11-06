@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-    Container, ContainerError, TypedToken,
+    Container,
+    ContainerError,
+    TypedToken,
 } from '../../src';
 
 describe('src/index.ts', () => {

@@ -1,4 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
+import {
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 import { Container, ContainerError, TypedToken } from '../../src';
 
 describe('src/container.ts — createScope', () => {
@@ -84,6 +89,7 @@ describe('src/container.ts — createScope', () => {
         container.register(token, { useValue: 99 });
 
         const scope = container.createScope();
+
         expect(scope.resolve(token)).toBe(99);
     });
 
@@ -94,6 +100,7 @@ describe('src/container.ts — createScope', () => {
         container.register(token, { useValue: 'root' });
 
         const scope = container.createScope();
+
         scope.register(token, { useValue: 'scoped' });
 
         expect(scope.resolve(token)).toBe('scoped');
@@ -106,11 +113,10 @@ describe('src/container.ts — createScope', () => {
         const connToken = new TypedToken<string>('conn');
 
         container.register(configToken, { useValue: 'db://host' });
-        container.register(connToken, {
-            useFactory: (c) => `conn(${c.resolve(configToken)})`,
-        }, { lifetime: 'scoped' });
+        container.register(connToken, { useFactory: (c) => `conn(${c.resolve(configToken)})` }, { lifetime: 'scoped' });
 
         const scope = container.createScope();
+
         expect(scope.resolve(connToken)).toBe('conn(db://host)');
     });
 
@@ -121,6 +127,7 @@ describe('src/container.ts — createScope', () => {
         container.register(token, { useFactory: () => ({}) }, { lifetime: 'scoped' });
 
         const child = container.createChild();
+
         expect(() => child.resolve(token)).toThrow(ContainerError);
     });
 });

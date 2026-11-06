@@ -1,7 +1,12 @@
-import { describe, expect, it, vi } from 'vitest';
+import {
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 import { Container, ContainerError, TypedToken } from '../../src';
 
-interface Handler {
+interface IHandler {
     name: string;
 }
 
@@ -11,7 +16,7 @@ describe('src/container.ts — multi-binding (registerMany / resolveAll)', () =>
     describe('registerMany & resolveAll', () => {
         it('should resolve all providers registered under one key in order', () => {
             const container = new Container();
-            const token = new TypedToken<Handler>('handler');
+            const token = new TypedToken<IHandler>('handler');
 
             container.registerMany(token, { useValue: { name: 'a' } });
             container.registerMany(token, { useFactory: () => ({ name: 'b' }) });
@@ -22,7 +27,7 @@ describe('src/container.ts — multi-binding (registerMany / resolveAll)', () =>
 
         it('should return an empty array for an unregistered key', () => {
             const container = new Container();
-            const token = new TypedToken<Handler>('missing');
+            const token = new TypedToken<IHandler>('missing');
 
             expect(container.resolveAll(token)).toEqual([]);
         });
@@ -228,6 +233,7 @@ describe('src/container.ts — multi-binding (registerMany / resolveAll)', () =>
             parent.registerMany(token, { useValue: 1 });
 
             const child = parent.createChild();
+
             child.registerMany(token, { useValue: 2 });
 
             expect(child.resolveAll(token)).toEqual([2, 1]);
@@ -241,6 +247,7 @@ describe('src/container.ts — multi-binding (registerMany / resolveAll)', () =>
             parent.registerMany(token, { useValue: 1 });
 
             const child = parent.createChild();
+
             child.registerMany(token, { useAsyncFactory: async () => 2 });
 
             await expect(child.resolveAllAsync(token)).resolves.toEqual([2, 1]);

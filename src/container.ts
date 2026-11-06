@@ -9,7 +9,13 @@ import { Lifetime } from './constants.ts';
 import { ContainerError } from './error.ts';
 import { TypedToken } from './token.ts';
 import type {
-    AsyncFactoryProvider, ContainerKey, IContainer, Provider, RegistrationOptions, Result, ValueProvider,
+    AsyncFactoryProvider,
+    ContainerKey,
+    IContainer,
+    Provider,
+    RegistrationOptions,
+    Result,
+    ValueProvider,
 } from './types.ts';
 
 type MapKey = symbol | string | (abstract new (...args: any[]) => any);
@@ -52,6 +58,7 @@ export class Container implements IContainer {
 
     register<T>(key: ContainerKey<T>, provider: Provider<T>, options: RegistrationOptions = {}): void {
         const k = this.normalizeKey(key);
+
         this.providers.set(k, provider);
         this.lifetimes.set(k, options.lifetime ?? Lifetime.SINGLETON);
         this.instances.delete(k);
@@ -66,9 +73,14 @@ export class Container implements IContainer {
         }
 
         const k = this.normalizeKey(key);
-        const registration: Registration<T> = { provider, lifetime, resolved: false };
+        const registration: Registration<T> = {
+            provider,
+            lifetime,
+            resolved: false,
+        };
 
         const list = this.collections.get(k);
+
         if (list) {
             list.push(registration);
         } else {
@@ -78,6 +90,7 @@ export class Container implements IContainer {
 
     unregister(key: ContainerKey): void {
         const k = this.normalizeKey(key);
+
         this.providers.delete(k);
         this.instances.delete(k);
         this.asyncResolving.delete(k);
@@ -147,6 +160,7 @@ export class Container implements IContainer {
 
     createChild(): Container {
         const child = new Container();
+
         child.parent = this;
 
         return child;
@@ -154,6 +168,7 @@ export class Container implements IContainer {
 
     createScope(): Container {
         const child = this.createChild();
+
         child.isScope = true;
 
         for (const [k, lifetime] of this.lifetimes) {
@@ -223,6 +238,7 @@ export class Container implements IContainer {
             }
 
             const cacheTarget = lifetime === Lifetime.SCOPED ? origin : this;
+
             if (cacheTarget.asyncResolving.has(k)) {
                 return cacheTarget.asyncResolving.get(k) as Promise<T>;
             }
@@ -234,6 +250,7 @@ export class Container implements IContainer {
 
                 try {
                     const instance = await pending;
+
                     cacheTarget.instances.set(k, instance);
 
                     return instance;
@@ -257,6 +274,7 @@ export class Container implements IContainer {
         const output: T[] = [];
 
         const list = this.collections.get(k);
+
         if (list) {
             // Reject the whole collection up-front if any provider is async, so a
             // failed sync resolution never leaves earlier singletons half-cached.
@@ -283,6 +301,7 @@ export class Container implements IContainer {
         const output: T[] = [];
 
         const list = this.collections.get(k);
+
         if (list) {
             for (const registration of list) {
                 output.push(await this.resolveRegistrationAsync<T>(registration, origin));
@@ -333,6 +352,7 @@ export class Container implements IContainer {
 
             try {
                 const instance = await pending;
+
                 registration.instance = instance;
                 registration.resolved = true;
 

@@ -1,6 +1,13 @@
-import { describe, expect, it, vi } from 'vitest';
 import {
-    Container, ContainerError, TypedToken,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
+import {
+    Container,
+    ContainerError,
+    TypedToken,
 } from '../../src';
 import type { IContainer } from '../../src';
 
@@ -53,7 +60,9 @@ describe('src/container.ts', () => {
         });
 
         it('should resolve with a class constructor key', () => {
-            class MyService { value = 'svc'; }
+            class MyService {
+                value = 'svc';
+            }
 
             const container = new Container();
             const instance = new MyService();
@@ -158,6 +167,7 @@ describe('src/container.ts', () => {
             container.register(token, { useValue: 7 });
 
             const result = container.tryResolve(token);
+
             expect(result).toEqual({ success: true, data: 7 });
         });
 
@@ -166,6 +176,7 @@ describe('src/container.ts', () => {
             const token = new TypedToken<number>('missing');
 
             const result = container.tryResolve(token);
+
             expect(result.success).toBe(false);
 
             if (!result.success) {
@@ -254,9 +265,11 @@ describe('src/container.ts', () => {
             const token = new TypedToken<object>('obj');
 
             container.register(token, { useFactory: () => ({ v: 'first' }) });
+
             const first = container.resolve(token);
 
             container.register(token, { useFactory: () => ({ v: 'second' }) });
+
             const second = container.resolve(token);
 
             expect(second).not.toBe(first);
